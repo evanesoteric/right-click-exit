@@ -1,0 +1,49 @@
+[size=5][b]Right Click Exit[/b][/size]
+[i]Right-click closes menus, dialogue and other screens, just like Escape.[/i]
+
+Without this mod, right-click only works as "back" in some screens. Talking to NPCs, leaving the ATM, shops, the pawn shop, deal handovers, casino tables and plenty of others still need a trip to the Escape key. Now right-click closes all of them.
+
+[size=4][b]Features[/b][/size]
+[list]
+[*][b]Right-click closes any screen Escape closes[/b]: dialogue, ATM, shops, pawn shop, deal handovers, casino tables, vehicle mods, character customization, hospital bill, graffiti, pause menu, main-menu sub-screens and more.
+[*][b]Uses the game's own close logic[/b]: sounds, animations, confirmation prompts and multiplayer sync behave exactly like Escape. Dialogue the game won't let you leave still can't be left.
+[*][b]Never opens the pause menu[/b]. During normal gameplay right-click does exactly what it did before (aiming, vehicles, skateboards).
+[*][b]Leaves right-click alone where it already means something[/b]: inventory slots, station-task multi-grab and the management clipboard selectors.
+[*][b]Lightweight[/b]: no game methods are patched, and nothing runs per frame.
+[*]Builds for both the [b]IL2CPP[/b] (normal) and [b]Mono[/b] (alternate beta) game branches.
+[/list]
+
+[size=4][b]Requirements[/b][/size]
+[list]
+[*][url=https://github.com/LavaGang/MelonLoader/releases]MelonLoader[/url] v0.7.0 or newer (tested on v0.7.3)
+[*]Tested on Schedule I v0.4.7f12
+[/list]
+
+[size=4][b]Installation[/b][/size]
+[list=1]
+[*]Install MelonLoader and run the game once.
+[*]Download the file for your branch: [b]IL2CPP[/b] (normal Steam version) or [b]Mono[/b] (only if you're on the "alternate" beta).
+[*]Extract the zip into your Schedule I folder, so the file ends up at [b]Schedule I\Mods\RightClickExit.dll[/b].
+[/list]
+The MelonLoader console will show [i][Right Click Exit] v1.0.0 loaded...[/i] when it's working.
+
+[size=4][b]Configuration[/b][/size]
+After the first launch, edit [b]Schedule I\UserData\MelonPreferences.cfg[/b] (with the game closed):
+[code]
+[RightClickExit]
+Enabled = true          # Master switch
+CloseTasks = false      # Also cancel station tasks (mixing, packaging, chemistry...)
+VerboseLogging = false  # Log every right-click the mod handles (for bug reports)
+[/code]
+[b]CloseTasks[/b] is off by default because several station tasks use right-click to grab multiple items at once.
+
+[size=4][b]Compatibility[/b][/size]
+Works in single-player and multiplayer (client-side only). It doesn't patch any game methods, so it shouldn't conflict with other mods. Mod screens that close on Escape through the game's exit system also close on right-click.
+
+[size=4][b]Bug reports[/b][/size]
+Please include your game version, MelonLoader version, branch (IL2CPP/Mono) and the relevant lines from [b]MelonLoader\Latest.log[/b] (with VerboseLogging on, if possible).
+
+[size=4][b]Source[/b][/size]
+Open source under the MIT license: [url=GITHUB_URL_HERE]GitHub[/url]
+
+[i]Fan-made mod. Not affiliated with or endorsed by TVGS.[/i]

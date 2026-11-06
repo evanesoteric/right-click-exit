@@ -1,0 +1,16 @@
+# Build output
+build/
+dist/
+src/bin/
+src/obj/
+*.user
+.vs/
+.idea/
+
+# Local game path (see LocalPaths.props.example)
+LocalPaths.props
+
+# Never commit game files
+*.zip
+Il2CppAssemblies/
+Managed/

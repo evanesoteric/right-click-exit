@@ -1,0 +1,113 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    RightClickExit - one source tree, two game builds.
+
+      dotnet build -c Il2Cpp   -> main Steam branch (IL2CPP, .NET 6 MelonLoader runtime)
+      dotnet build -c Mono     -> "alternate" Steam branch (Mono)
+
+    Game references are resolved from your local Schedule I install. Set the
+    install path with -p:GameDir="..." or in a Directory.Build.props.user file
+    next to this project (see Directory.Build.props.user.example). No NuGet
+    packages are required; everything is referenced from the game folder.
+  -->
+
+  <!-- Optional, git-ignored file for your local install path. See LocalPaths.props.example. -->
+  <Import Project="$(MSBuildThisFileDirectory)..\LocalPaths.props" Condition="Exists('$(MSBuildThisFileDirectory)..\LocalPaths.props')" />
+
+  <PropertyGroup>
+    <Configurations>Il2Cpp;Mono</Configurations>
+    <Configuration Condition="'$(Configuration)' == ''">Il2Cpp</Configuration>
+    <AssemblyName>RightClickExit</AssemblyName>
+    <RootNamespace>RightClickExit</RootNamespace>
+    <Version>1.0.0</Version>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Optimize>true</Optimize>
+    <DebugType>portable</DebugType>
+    <Deterministic>true</Deterministic>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Game assemblies are compiled against different framework versions; these are expected. -->
+    <NoWarn>$(NoWarn);MSB3277;CS1701;CS1702</NoWarn>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <OutputPath>$(MSBuildThisFileDirectory)..\build\$(Configuration)\</OutputPath>
+    <GameDir Condition="'$(GameDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Schedule I</GameDir>
+    <!-- Overridable individually, e.g. when building from extracted copies of the game files. -->
+    <MelonLoaderDir Condition="'$(MelonLoaderDir)' == ''">$(GameDir)\MelonLoader</MelonLoaderDir>
+    <Il2CppAssembliesDir Condition="'$(Il2CppAssembliesDir)' == ''">$(MelonLoaderDir)\Il2CppAssemblies</Il2CppAssembliesDir>
+    <ManagedDir Condition="'$(ManagedDir)' == ''">$(GameDir)\Schedule I_Data\Managed</ManagedDir>
+  </PropertyGroup>
+
+  <!-- ===================== IL2CPP (main branch) ===================== -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Il2Cpp'">
+    <TargetFramework>net6.0</TargetFramework>
+    <DefineConstants>$(DefineConstants);IL2CPP</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Il2Cpp'">
+    <Reference Include="MelonLoader" HintPath="$(MelonLoaderDir)\net6\MelonLoader.dll" Private="false" />
+    <Reference Include="Il2CppInterop.Runtime" HintPath="$(MelonLoaderDir)\net6\Il2CppInterop.Runtime.dll" Private="false" />
+    <Reference Include="Il2Cppmscorlib" HintPath="$(Il2CppAssembliesDir)\Il2Cppmscorlib.dll" Private="false" />
+    <Reference Include="Assembly-CSharp" HintPath="$(Il2CppAssembliesDir)\Assembly-CSharp.dll" Private="false" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(Il2CppAssembliesDir)\UnityEngine.CoreModule.dll" Private="false" />
+  </ItemGroup>
+
+  <!-- ===================== Mono (alternate branch) ===================== -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Mono'">
+    <TargetFramework>net472</TargetFramework>
+    <DefineConstants>$(DefineConstants);MONO</DefineConstants>
+    <!-- Compile against the game's own Mono class libraries; no .NET Framework targeting pack needed. -->
+    <FrameworkPathOverride>$(ManagedDir)</FrameworkPathOverride>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+    <AutomaticallyUseReferenceAssemblyPackages>false</AutomaticallyUseReferenceAssemblyPackages>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Mono'">
+    <Reference Include="mscorlib" HintPath="$(ManagedDir)\mscorlib.dll" Private="false" />
+    <Reference Include="System" HintPath="$(ManagedDir)\System.dll" Private="false" />
+    <Reference Include="System.Core" HintPath="$(ManagedDir)\System.Core.dll" Private="false" />
+    <Reference Include="netstandard" HintPath="$(ManagedDir)\netstandard.dll" Private="false" />
+    <Reference Include="MelonLoader" HintPath="$(MelonLoaderDir)\net35\MelonLoader.dll" Private="false" />
+    <Reference Include="Assembly-CSharp" HintPath="$(ManagedDir)\Assembly-CSharp.dll" Private="false" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(ManagedDir)\UnityEngine.CoreModule.dll" Private="false" />
+  </ItemGroup>
+
+  <!--
+    Generates BuildInfo.Version from <Version> above, so MelonInfo, the log line,
+    the assembly version and the release zip name always agree.
+  -->
+  <Target Name="GenerateVersionInfo" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <VersionInfoFile>$(IntermediateOutputPath)BuildInfo.Version.g.cs</VersionInfoFile>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(VersionInfoFile)" Overwrite="true" WriteOnlyWhenDifferent="true"
+                      Lines="// &lt;auto-generated /&gt;;namespace RightClickExit;{;    public static partial class BuildInfo;    {;        /// &lt;summary&gt;Semantic version, generated from the csproj &amp;lt%3BVersion&amp;gt%3B.&lt;/summary&gt;;        public const string Version = &quot;$(Version)&quot;%3B;    };}" />
+    <ItemGroup>
+      <Compile Include="$(VersionInfoFile)" />
+      <FileWrites Include="$(VersionInfoFile)" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Release packaging:  dotnet build -c Il2Cpp -t:Package   (and again with -c Mono)
+    Produces dist/RightClickExit-<version>-<Configuration>.zip laid out as
+    Mods/RightClickExit.dll (plus the license under UserData/RightClickExit/), ready to upload to Nexus Mods or attach to a GitHub release.
+  -->
+  <Target Name="Package" DependsOnTargets="Build">
+    <PropertyGroup>
+      <PackageStageDir>$(MSBuildThisFileDirectory)..\build\stage\$(Configuration)\</PackageStageDir>
+      <PackageDistDir>$(MSBuildThisFileDirectory)..\dist\</PackageDistDir>
+      <PackageZip>$(PackageDistDir)RightClickExit-$(Version)-$(Configuration).zip</PackageZip>
+    </PropertyGroup>
+    <RemoveDir Directories="$(PackageStageDir)" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PackageStageDir)Mods" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\LICENSE" DestinationFiles="$(PackageStageDir)UserData\RightClickExit\LICENSE.txt" />
+    <MakeDir Directories="$(PackageDistDir)" />
+    <ZipDirectory SourceDirectory="$(PackageStageDir)" DestinationFile="$(PackageZip)" Overwrite="true" />
+    <Message Importance="high" Text="Packaged: $(PackageZip)" />
+  </Target>
+
+</Project>

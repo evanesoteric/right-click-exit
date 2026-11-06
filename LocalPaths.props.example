@@ -1,0 +1,17 @@
+<!--
+  Copy this file to LocalPaths.props (git-ignored) and adjust the paths.
+
+  GameDir     Your Schedule I install. Only needed if it is not in the default
+              Steam location (C:\Program Files (x86)\Steam\steamapps\common\Schedule I).
+
+  ManagedDir  Only needed for the Mono build. The IL2CPP (main) branch has no
+              "Schedule I_Data\Managed" folder, so keep a copy of that folder from
+              the "alternate" branch somewhere and point this at it. That way you
+              can build both versions without switching branches.
+-->
+<Project>
+  <PropertyGroup>
+    <GameDir>D:\SteamLibrary\steamapps\common\Schedule I</GameDir>
+    <ManagedDir>D:\Modding\ScheduleI-Mono\Managed</ManagedDir>
+  </PropertyGroup>
+</Project>
